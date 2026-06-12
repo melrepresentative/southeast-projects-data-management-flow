@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REACH Myanmar — Southeast Projects · Interactive Data Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --indigo:#485B9A;
+  --indigo-dk:#39477C;
+  --ink:#2A3357;
+  --peri:#A3ADCC;
+  --mist:#EEF1F8;
+  --slate:#6B7385;
+  --hair:#E4E8F0;
+  --white:#FFFFFF;
+  --title:"Barlow Condensed","Oswald","Arial Narrow",sans-serif;
+  --body:"Poppins","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);background:var(--mist);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;overflow:auto;-webkit-font-smoothing:antialiased}
+
+/* Topbar */
+.topbar{background:var(--ink);border-bottom:2px solid var(--indigo);padding:0 24px;display:flex;align-items:center;gap:14px;flex-shrink:0;z-index:10;flex-wrap:wrap;height:auto;min-height:56px;position:relative}
+.topbar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--indigo)}
+.topbar .icon{width:32px;height:32px;background:var(--indigo);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--title);font-weight:800;font-size:16px;color:#fff;flex-shrink:0;letter-spacing:.02em}
+.topbar .title{font-family:var(--title);font-size:16px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em}
+.topbar .sub{font-size:10px;color:var(--peri);margin-top:1px;font-weight:500;letter-spacing:.08em}
+.search-wrap{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:9999px;padding:5px 14px;min-width:200px}
+.search-wrap input{background:none;border:none;outline:none;font-size:12px;color:#fff;width:100%;font-family:var(--body)}
+.search-wrap input::placeholder{color:var(--peri)}
+.search-wrap .si{font-size:13px;color:var(--peri)}
+.search-wrap .sc{font-size:15px;color:var(--peri);cursor:pointer;display:none;line-height:1}
+.search-wrap .sc:hover{color:#fff}
+.hint{font-size:10px;color:var(--peri);border:1px solid rgba(255,255,255,.15);padding:5px 12px;border-radius:9999px;white-space:nowrap;letter-spacing:.04em;font-weight:600}
+.view-toggle{display:flex;gap:6px}
+.vbtn{border:1.5px solid rgba(255,255,255,.2);background:transparent;color:var(--peri);font-size:11px;font-weight:600;padding:6px 14px;border-radius:9999px;cursor:pointer;transition:all .2s;font-family:var(--body);letter-spacing:.04em}
+.vbtn:hover{border-color:var(--peri);color:#fff}
+.vbtn.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+
+/* Responsive Topbar */
+@media(max-width:480px){
+  .topbar{padding:12px 16px}
+  .topbar .title{font-size:14px}
+  .topbar .sub{display:none}
+  .search-wrap{min-width:160px;font-size:11px}
+  .hint{display:none}
+  .view-toggle{flex-wrap:wrap;gap:4px}
+  .vbtn{font-size:10px;padding:5px 10px}
+}
+@media(min-width:481px) and (max-width:768px){
+  .topbar{padding:14px 18px}
+  .topbar .title{font-size:15px}
+  .topbar .sub{font-size:9px}
+  .search-wrap{min-width:180px}
+  .hint{font-size:9px}
+  .vbtn{font-size:10px;padding:5px 12px}
+}
+@media(min-width:769px) and (max-width:1024px){
+  .topbar{padding:16px 20px}
+  .topbar .title{font-size:15px}
+  .vbtn{font-size:10px}
+}
+
+/* Canvas */
+.canvas-wrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:flex-start;background:var(--mist);padding:20px;width:100%}
+svg{font-family:var(--body);display:block;border-radius:12px;box-shadow:0 4px 24px rgba(42,51,87,.10);width:100%;height:auto;max-width:none}
+
+/* Responsive Canvas */
+@media(max-width:480px){
+  .canvas-wrap{padding:12px}
+  svg{min-width:100%}
+}
+@media(min-width:481px) and (max-width:768px){
+  .canvas-wrap{padding:15px}
+  svg{min-width:100%}
+}
+@media(min-width:769px) and (max-width:1024px){
+  .canvas-wrap{padding:18px}
+  svg{min-width:100%}
+}
+@media(min-width:1025px){
+  .canvas-wrap{padding:20px}
+  svg{min-width:100%}
+}
+
+/* Infobar */
+.infobar{background:var(--ink);border-top:2px solid var(--indigo);padding:10px 24px;min-height:42px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;width:100%}
+.infobar .lbl{font-family:var(--title);font-size:10px;color:var(--peri);font-weight:700;text-transform:uppercase;letter-spacing:.14em;white-space:nowrap}
+.infobar .msg{font-size:11px;color:var(--peri);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;flex:1;min-width:0}
+.infobar .msg.on{color:#fff}
+
+/* Responsive Infobar */
+@media(max-width:480px){
+  .infobar{padding:8px 16px}
+  .infobar .lbl{font-size:9px}
+  .infobar .msg{font-size:10px}
+}
+@media(min-width:481px) and (max-width:768px){
+  .infobar{padding:9px 18px}
+  .infobar .msg{font-size:10px}
+}
+@media(min-width:769px) and (max-width:1024px){
+  .infobar{padding:10px 20px}
+}
+
+/* Network view */
+#net-wrap{display:none;flex:1;background:#ffffff;position:relative;overflow:hidden;min-height:calc(100vh - 100px)}
+#net-svg{width:100%;height:100%}
+.net-tooltip{position:absolute;background:#2A3357;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .15s;border:1px solid #485B9A;white-space:nowrap;font-family:var(--body)}
+.net-legend{position:absolute;bottom:16px;left:16px;display:flex;flex-wrap:wrap;gap:8px}
+#net-counts{display:flex;gap:16px;align-items:center;font-family:var(--body)}
+.net-leg-item{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);padding:5px 12px;border-radius:9999px;font-size:11px;color:#A3ADCC;font-weight:600;border:1px solid rgba(255,255,255,.12)}
+.net-leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.net-filters{position:absolute;top:16px;right:16px;display:flex;gap:8px;align-items:center;flex-wrap:nowrap}
+.net-filter-btn{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.15);color:#A3ADCC;font-size:11px;font-weight:600;padding:5px 14px;border-radius:9999px;cursor:pointer;transition:all .2s;font-family:var(--body);letter-spacing:.04em}
+.net-filter-btn:hover{border-color:#A3ADCC;color:#fff}
+.net-filter-btn.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.edit-mode-active rect { cursor: crosshair !important; }
+#edit-panel input:focus { border-color:#485B9A; outline:none; box-shadow:0 0 0 2px #485B9A22; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="icon">R</div>
+  <div>
+    <div class="title">REACH — Southeast Projects</div>
+    <div class="sub">Interactive Data Flow · Partners → Projects → Data Types → Reporting → Verification → RDQA → Donors</div>
+  </div>
+  <div class="hint" style="margin-left:auto">Click to trace · Shift+click multi-select · Drag</div>
+  <div class="view-toggle">
+    <button class="vbtn active" id="btn-flow"     onclick="switchView('flow')">Data Management Flow</button>
+    <button class="vbtn"        id="btn-thematics" onclick="switchView('thematics')">Thematics by Partner and Project</button>
+    <button class="vbtn"        id="btn-net"       onclick="switchView('network')">Network View</button>
+    <button class="vbtn"        id="btn-clear"     onclick="clearCurrent()" style="display:none;background:#c0392b;border-color:#c0392b;color:#fff">✕ Clear</button>
+    <button class="vbtn"        id="btn-edit"      onclick="toggleEditMode()" style="margin-left:8px">✏️ Edit</button>
+  </div>
+</div>
+
+<div id="edit-panel" style="display:none;position:fixed;top:108px;right:20px;width:260px;background:#fff;border:1.5px solid #A3ADCC;border-radius:14px;box-shadow:0 8px 40px rgba(42,51,87,.18);z-index:9999;font-family:'Poppins',sans-serif;pointer-events:all">
+  <div style="background:#485B9A;padding:12px 16px;color:#fff;font-weight:700;font-size:12px;letter-spacing:1px;font-family:'Barlow Condensed',sans-serif;display:flex;justify-content:space-between;align-items:center;border-radius:12px 12px 0 0">
+    <div>✏️ EDIT MODE — <span id="edit-view-label" style="font-weight:400;opacity:.8">Thematics</span></div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <span id="btn-minimize-edit" style="cursor:pointer;font-size:18px;opacity:.8;line-height:1" onclick="toggleMinimizeEdit()" title="Minimize">−</span>
+      <span style="cursor:pointer;font-size:14px;opacity:.8;line-height:1" onclick="toggleEditMode()" title="Close">✕</span>
+    </div>
+  </div>
+  
+  <div id="edit-panel-body" style="padding:14px 16px;display:flex;flex-direction:column;gap:14px;max-height:75vh;overflow-y:auto">
+    <div>
+      <div style="font-size:10px;font-weight:700;color:#485B9A;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif">ADD PARTNER</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="inp-partner" type="text" placeholder="Partner name…"
+          style="flex:1;padding:7px 10px;border:1.5px solid #E4E8F0;border-radius:8px;font-size:12px;font-family:'Poppins',sans-serif;color:#2A3357;background:#fff;pointer-events:all"
+          onkeydown="if(event.key==='Enter')addEditNode('partner')"
+          onclick="event.stopPropagation()"/>
+        <button onclick="addEditNode('partner')" style="background:#485B9A;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;pointer-events:all">+</button>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:10px;font-weight:700;color:#2A3357;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif">ADD PROJECT</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="inp-project" type="text" placeholder="Project name…"
+          style="flex:1;padding:7px 10px;border:1.5px solid #E4E8F0;border-radius:8px;font-size:12px;font-family:'Poppins',sans-serif;color:#2A3357;background:#fff;pointer-events:all"
+          onkeydown="if(event.key==='Enter')addEditNode('project')"
+          onclick="event.stopPropagation()"/>
+        <button onclick="addEditNode('project')" style="background:#2A3357;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;pointer-events:all">+</button>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:10px;font-weight:700;color:#6B7385;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif">ADD THEMATIC</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="inp-thematic" type="text" placeholder="Thematic name…"
+          style="flex:1;padding:7px 10px;border:1.5px solid #E4E8F0;border-radius:8px;font-size:12px;font-family:'Poppins',sans-serif;color:#2A3357;background:#fff;pointer-events:all"
+          onkeydown="if(event.key==='Enter')addEditNode('datatype')"
+          onclick="event.stopPropagation()"/>
+        <button onclick="addEditNode('datatype')" style="background:#6B7385;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;pointer-events:all">+</button>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid #EEF1F8;padding-top:12px">
+      <div style="font-size:10px;font-weight:700;color:#2A3357;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif">CONNECT / DISCONNECT</div>
+      <div style="font-size:11px;color:#6B7385;line-height:1.5;margin-bottom:8px">Click two nodes to add or remove a connection.</div>
+      <div id="edit-sel-a" style="padding:7px 10px;background:#EEF1F8;border-radius:8px;font-size:11px;color:#6B7385;margin-bottom:4px">① Select first node…</div>
+      <div id="edit-sel-b" style="padding:7px 10px;background:#EEF1F8;border-radius:8px;font-size:11px;color:#6B7385">② Select second node…</div>
+      <div id="edit-conn-result" style="margin-top:6px;font-size:11px;font-weight:600;min-height:16px;text-align:center"></div>
+    </div>
+
+    <div style="border-top:1px solid #EEF1F8;padding-top:12px">
+      <div style="font-size:10px;font-weight:700;color:#2A3357;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif">RENAME NODE</div>
+      <div style="font-size:11px;color:#6B7385;line-height:1.5;margin-bottom:8px">Double-click any node to rename it.</div>
+    </div>
+
+    <div style="border-top:1px solid #EEF1F8;padding-top:12px">
+      <div style="font-size:10px;font-weight:700;color:#c0392b;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif">DELETE NODE</div>
+      <div style="font-size:11px;color:#6B7385;line-height:1.5;margin-bottom:8px">Right-click any node to delete it.</div>
+    </div>
+
+    <div style="border-top:1px solid #EEF1F8;padding-top:12px">
+      <div style="font-size:10px;font-weight:700;color:#27ae60;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif">SAVE YOUR CHANGES</div>
+      <div style="font-size:11px;color:#6B7385;line-height:1.5;margin-bottom:8px">Click below to copy your edits, then paste them into your HTML file to save permanently.</div>
+      <button onclick="copyDataForServer()" style="width:100%;background:#27ae60;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s">📋 Copy Data Code</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="rename-modal" style="display:none;position:fixed;inset:0;background:rgba(42,51,87,.5);z-index:10000;display:none;align-items:center;justify-content:center;pointer-events:all">
+  <div style="background:#fff;border-radius:14px;padding:24px;width:320px;box-shadow:0 16px 48px rgba(0,0,0,.2)">
+    <div style="font-size:14px;font-weight:700;color:#2A3357;margin-bottom:14px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">RENAME NODE</div>
+    <input id="rename-input" type="text" style="width:100%;padding:9px 12px;border:1.5px solid #A3ADCC;border-radius:8px;font-size:13px;font-family:'Poppins',sans-serif;color:#2A3357;box-sizing:border-box;outline:none"
+      onkeydown="if(event.key==='Enter')confirmRename();if(event.key==='Escape')closeRename()"/>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button onclick="confirmRename()" style="flex:1;background:#485B9A;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">Save</button>
+      <button onclick="closeRename()" style="flex:1;background:#EEF1F8;color:#6B7385;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-wrap">
+<svg id="wf" viewBox="0 0 1260 1020" style="background:#ffffff;font-family:'Poppins','Helvetica Neue',Arial,sans-serif">
+<defs>
+  <marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M2 2L8 5L2 8" fill="none" stroke="#A3ADCC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M2 2L8 5L2 8" fill="none" stroke="#485B9A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="mc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M2 2L8 5L2 8" fill="none" stroke="#E4E8F0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<rect width="1260" height="1020" fill="#ffffff"/>
+
+<rect x="144" y="22"  width="1110" height="90"  fill="#485B9A" opacity="0.06"/>
+<rect x="144" y="116" width="1110" height="100" fill="#2A3357" opacity="0.04"/>
+<rect x="144" y="218" width="1110" height="148" fill="#485B9A" opacity="0.05"/>
+<rect x="144" y="366" width="1110" height="132" fill="#A3ADCC" opacity="0.08"/>
+<rect x="144" y="610" width="1110" height="102" fill="#2A3357" opacity="0.04"/>
+<rect x="144" y="814" width="1110" height="170" fill="#EEF1F8" opacity="0.6"/>
+
+<rect x="0" y="0" width="144" height="1020" fill="#2A3357"/>
+<rect x="0" y="0" width="6"   height="1020" fill="#485B9A"/>
+<line x1="144" y1="0" x2="144" y2="1020" stroke="#485B9A" stroke-width="1.5"/>
+
+<rect x="8" y="27"  width="130" height="83"  fill="#485B9A" rx="8"/>
+<text x="73" y="62"  text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">PARTNERS</text>
+
+<rect x="8" y="117" width="130" height="94"  fill="#2A3357" rx="8"/>
+<text x="73" y="164" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">PROJECTS</text>
+
+<rect x="8" y="220" width="130" height="140" fill="#485B9A" rx="8" opacity="0.7"/>
+<text x="73" y="279" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif" id="dt-label">DATA TYPES</text>
+
+<g id="lower-layers">
+
+<rect x="8" y="370" width="130" height="126" fill="#2A3357" rx="8" opacity="0.7"/>
+<text x="73" y="416" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">PARTNER</text>
+<text x="73" y="432" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">REPORTING</text>
+<text x="73" y="452" text-anchor="middle" font-size="11" font-weight="500" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">to REACH</text>
+
+<rect x="8" y="502" width="130" height="104" fill="#485B9A" rx="8" opacity="0.5"/>
+<text x="73" y="546" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">DATA</text>
+<text x="73" y="562" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">VERIFICATION</text>
+
+<rect x="8" y="614" width="130" height="94"  fill="#2A3357" rx="8" opacity="0.5"/>
+<text x="73" y="651" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">RDQA</text>
+<text x="73" y="667" text-anchor="middle" font-size="11" font-weight="500" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">Quarterly / Biannually</text>
+
+<rect x="8" y="716" width="130" height="94"  fill="#485B9A" rx="8" opacity="0.4"/>
+<text x="73" y="755" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">DONOR</text>
+<text x="73" y="771" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">REPORTING</text>
+
+<rect x="8" y="818" width="130" height="142" fill="#2A3357" rx="8" opacity="0.4"/>
+<text x="73" y="889" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="1" font-family="'Barlow Condensed',sans-serif">DONORS</text>
+
+<line x1="144" y1="366" x2="1255" y2="366" stroke="#E4E8F0" stroke-width="1"/>
+<line x1="144" y1="500" x2="1255" y2="500" stroke="#E4E8F0" stroke-width="1"/>
+<line x1="144" y1="610" x2="1255" y2="610" stroke="#E4E8F0" stroke-width="1"/>
+<line x1="144" y1="712" x2="1255" y2="712" stroke="#E4E8F0" stroke-width="1"/>
+<line x1="144" y1="816" x2="1255" y2="816" stroke="#E4E8F0" stroke-width="1"/>
+<line x1="144" y1="958" x2="1255" y2="958" stroke="#E4E8F0" stroke-width="1"/>
+
+</g>
+
+<line x1="144" y1="22"  x2="1255" y2="22"  stroke="#E4E8F0" stroke-width="1"/>
+<line x1="144" y1="112" x2="1255" y2="112" stroke="#E4E8F0" stroke-width="1"/>
+<line x1="144" y1="218" x2="1255" y2="218" stroke="#E4E8F0" stroke-width="1"/>
+
+<rect id="th-cover" x="0" y="365" width="144" height="660" fill="#2A3357" display="none"/>
+
+<g id="lkg"></g>
+<g id="ndg"></g>
+
+<g id="lower-legend">
+<line x1="152" y1="973" x2="180" y2="973" stroke="#6B7385" stroke-width="2" stroke-linecap="round"/>
+<text x="186" y="977" font-size="11" fill="#6B7385" font-family="'Poppins',sans-serif">Regular support</text>
+<line x1="310" y1="973" x2="338" y2="973" stroke="#6B7385" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/>
+<text x="344" y="977" font-size="11" fill="#64748b">One-time support</text>
+</g>
+
+<text x="720" y="512" text-anchor="middle" font-size="11" fill="#94a3b8" font-style="italic">Quarterly</text>
+<text x="648" y="830" text-anchor="end"   font-size="10" fill="#94a3b8">Report Submission ↓</text>
+<text x="768" y="830" text-anchor="start" font-size="10" fill="#94a3b8">↑ Feedback</text>
+
+<path d="M 988 882 H 1250 V 65 H 1225" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="7,4" marker-end="url(#mc)"/>
+<text font-size="10" fill="#94a3b8" transform="translate(1256,580) rotate(-90)" text-anchor="middle">Feedback / Recommendations</text>
+
+<path d="M 492 660 H 370 V 553 H 388" fill="none" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#mc)"/>
+<text font-size="9" fill="#94a3b8" transform="translate(364,608) rotate(-90)" text-anchor="middle">RDQA Feedback</text>
+<rect x="144" y="930" width="480" height="16" fill="#f8fafc" rx="3" opacity="0.85"/>
+<line x1="152" y1="938" x2="178" y2="938" stroke="#E4E8F0" stroke-width="2" stroke-linecap="round"/>
+<text x="183" y="942" font-size="10" fill="#6B7385" font-weight="600" font-family="'Poppins',sans-serif">Default</text>
+<line x1="244" y1="938" x2="270" y2="938" stroke="#A3ADCC" stroke-width="2.5" stroke-linecap="round"/>
+<text x="275" y="942" font-size="10" fill="#6B7385" font-weight="600" font-family="'Poppins',sans-serif">Partner → Project (on click)</text>
+<line x1="446" y1="938" x2="472" y2="938" stroke="#485B9A" stroke-width="2.5" stroke-linecap="round"/>
+<text x="477" y="942" font-size="10" fill="#6B7385" font-weight="600" font-family="'Poppins',sans-serif">Project → Data Types (on click)</text>
+<line x1="640" y1="938" x2="666" y2="938" stroke="#E4E8F0" stroke-width="1.8" stroke-dasharray="4,3" stroke-linecap="round"/>
+<text x="671" y="942" font-size="10" fill="#6B7385" font-weight="600" font-family="'Poppins',sans-serif">One-time</text>
+
+</svg>
+</div>
+
+<div class="infobar">
+  <span class="lbl">Info</span>
+  <span class="msg" id="inf">Click a node to trace its chain · Click multiple to combine · Drag freely</span>
+</div>
+
+<div id="net-wrap">
+  <svg id="net-svg"></svg>
+  <div class="net-tooltip" id="net-tip"></div>
+  <div class="net-filters" id="net-filters">
+    <button class="net-filter-btn active" data-layer="all">All</button>
+    <button class="net-filter-btn" data-layer="project">Projects</button>
+    <button class="net-filter-btn" data-layer="partner">Partners</button>
+    <button class="net-filter-btn" data-layer="datatype">Thematics</button>
+    <div id="net-counts" style="margin-left:auto;display:flex;gap:16px;align-items:center;font-size:12px;color:#2A3357;font-weight:600;"></div>
+  </div>
+  <div class="net-legend" id="net-legend"></div>
+</div>
+
+<script>
+// ── Color palette (light theme) ───────────────────────────────────────
+const C = {
+  partner:   { fill:'#485B9A', stroke:'#39477C', text:'#ffffff', hi:'#39477C' },  // Primary
+  project:   { fill:'#2A3357', stroke:'#1e2540', text:'#ffffff', hi:'#1e2540' },  // Secondary
+  datatype:  { fill:'#485B9A', stroke:'#39477C', text:'#ffffff', hi:'#39477C' },  // Primary
+  reporting: { fill:'#2A3357', stroke:'#1e2540', text:'#ffffff', hi:'#1e2540' },  // Secondary
+  verif:     { fill:'#485B9A', stroke:'#39477C', text:'#ffffff', hi:'#39477C' },  // Primary
+  rdqa:      { fill:'#2A3357', stroke:'#1e2540', text:'#ffffff', hi:'#1e2540' },  // Secondary
+  donorrep:  { fill:'#485B9A', stroke:'#39477C', text:'#ffffff', hi:'#39477C' },  // Primary
+  donors:    { fill:'#2A3357', stroke:'#1e2540', text:'#ffffff', hi:'#1e2540' },  // Secondary
+};
+
+// ── Node definitions ──────────────────────────────────────────────────
+let ND = {
+  // Partners (y=65, h=36) — Layer 1
+  spp:    { lbl:'SPP',           x:220,  y:163, w:82,  h:38, ly:'project',   info:'Strengthening Partners Program' },
+  sharp:  { lbl:'SHARP',        x:377,  y:163, w:92,  h:38, ly:'project',   info:'Strategic Health Assistance and Response Program' },
+  rch_kk: { lbl:'REACH KK',    x:534,  y:163, w:112, h:38, ly:'project',   info:'REACH Kayah-Karen Project' },
+  phc:    { lbl:'PHC',          x:691,  y:163, w:82,  h:38, ly:'project',   info:'Primary Health Care Project' },
+  chain:  { lbl:'CHAIN',        x:848,  y:163, w:92,  h:38, ly:'project',   info:'CHAIN Project' },
+  dfat:   { lbl:'DFAT, SWAGiM', x:1005, y:163, w:136, h:38, ly:'project',   info:'DFAT / SWAGiM Initiative' },
+  sipd:   { lbl:'SIPD',         x:1162, y:163, w:82,  h:38, ly:'project',   info:'SIPD Project' },
+
+  // Projects (y=163, h=38) — Layer 2
+  kdhw:   { lbl:'KDHW',        x:170,  y:65,  w:74,  h:36, ly:'partner',   info:'Karen Department of Health and Welfare' },
+  chdn:   { lbl:'CHDN Plus',   x:260,  y:65,  w:90,  h:36, ly:'partner',   info:'Child Health and Development Network Plus' },
+  iec:    { lbl:'IEC',          x:358,  y:65,  w:66,  h:36, ly:'partner',   info:'Information, Education and Communication' },
+  bma:    { lbl:'BMA',          x:450,  y:65,  w:66,  h:36, ly:'partner',   info:'Burma Medical Association' },
+  bphwt:  { lbl:'BPHWT',       x:542,  y:65,  w:74,  h:36, ly:'partner',   info:'Back Pack Health Worker Team' },
+  kwo:    { lbl:'KWO',          x:634,  y:65,  w:66,  h:36, ly:'partner',   info:'Karen Women Organization' },
+  knwo:   { lbl:'KnWO',         x:722,  y:65,  w:66,  h:36, ly:'partner',   info:'Karenni Women Organization' },
+  mtc:    { lbl:'MTC',          x:810,  y:65,  w:66,  h:36, ly:'partner',   info:'MTC Organization' },
+  fracts: { lbl:'FR-ACTS',     x:900,  y:65,  w:80,  h:36, ly:'partner',   info:'Free Range Accountability and Transparency System' },
+  soh:    { lbl:'SOH',          x:992,  y:65,  w:66,  h:36, ly:'partner',   info:'Save Our Health' },
+  khp:    { lbl:'KHP',          x:1082, y:65,  w:66,  h:36, ly:'partner',   info:'Karen Health Programme' },
+  oto:    { lbl:'OTO',          x:1192, y:65,  w:62,  h:36, ly:'partner',   info:'OTO Organization' },
+
+  // Data Types (y=292, h=50)
+  surv:  { lbl:'Surveillance',          x:200,  y:292, w:120, h:50, ly:'datatype',  info:'Disease and health surveillance data' },
+  epi:   { lbl:'EPI',                   x:358,  y:292, w:80,  h:50, ly:'datatype',  info:'Expanded Programme on Immunization' },
+  mnch:  { lbl:'MNCH',           x:480,  y:292, w:88,  h:50, ly:'datatype',  info:'Maternal Newborn and Child Health' },
+  nutr:  { lbl:'Nutrition',      x:580,  y:292, w:100, h:50, ly:'datatype',  info:'Nutrition programs and interventions' },
+  tb:    { lbl:'TB,\nMalaria',   x:710,  y:292, w:100, h:50, ly:'datatype',  info:'Tuberculosis and Malaria Programs', two:1 },
+  gbv:   { lbl:'GBV, SRHR,\nMHPSS',    x:855,  y:292, w:130, h:50, ly:'datatype',  info:'Gender-Based Violence, Sexual/Reproductive Health Rights and Mental Health/Psychosocial Support', two:1 },
+  disab: { lbl:'Disability\nFocus',     x:1020, y:292, w:118, h:50, ly:'datatype',  info:'Disability-focused health services', two:1 },
+  hum:   { lbl:'Humanitarian\nAssist', x:1180, y:292, w:118, h:50, ly:'datatype',  info:'Humanitarian Assistance programs', two:1 },
+  gedsi: { lbl:'GEDSI',                 x:1340, y:292, w:90,  h:50, ly:'datatype',  info:'Gender Equality, Disability and Social Inclusion' },
+  accsi: { lbl:'Accountability &\nSocial Inclusion', x:1480, y:292, w:148, h:50, ly:'datatype', info:'Accountability and Social Inclusion programs', two:1 },
+  hss:   { lbl:'HSS',                   x:1640, y:292, w:72,  h:50, ly:'datatype',  info:'Health Systems Strengthening' },
+  hgov:  { lbl:'Health\nGovernance',    x:1740, y:292, w:110, h:50, ly:'datatype',  info:'Health Governance programs', two:1 },
+
+  // Reporting (y=432, h=56)
+  data_auto: { lbl:'Data Automation Process\n[Streamlit, Kobo Collect]',       x:437,  y:432, w:292, h:56, ly:'reporting', info:'Automated pipeline via Streamlit Partners Dataset and Surveillance Data in Kobo Collect', two:1 },
+  logframe:  { lbl:'Logframe Report,\nDisaggregated Report (Clinic Level)',     x:1018, y:432, w:335, h:56, ly:'reporting', info:'Quarterly logframe reporting and disaggregated clinic-level reports', two:1 },
+
+  // Verification (y=553, h=48)
+  verif:    { lbl:'REACH — Partner Report Verification, Hard Copies Verification, Dataset Verification', x:720, y:553, w:720, h:48, ly:'verif', info:'REACH verifies partner reports, hard copies, and datasets in the Data Automation Process' },
+
+  // RDQA (y=660, h=48)
+  rdqa:     { lbl:'REACH — Routine Data Quality Assessment [Quarterly, Biannually]', x:720, y:660, w:510, h:48, ly:'rdqa', info:'Routine Data Quality Assessment conducted quarterly and biannually by REACH' },
+
+  // Donor Reporting (y=764, h=44)
+  donorrep: { lbl:'REACH [Quarterly, Biannually]', x:720, y:764, w:365, h:44, ly:'donorrep', info:'REACH compiles and submits donor reports quarterly and biannually' },
+
+  // Donors (y=882, h:44)
+  donors:   { lbl:'Donor', x:720, y:882, w:160, h:44, ly:'donors', info:'HEI, UNOPS, LAMP, UNFPA, Swiss Development Cooperation' },
+};
+
+// ── Links [from, to, dashed]  0=solid 1=one-time ──────────────────────
+let LK = [
+  // Partners → Projects
+  ['spp',    'kdhw',  0],
+  ['sharp',  'kdhw',  0],
+  ['rch_kk', 'kdhw',  0], ['rch_kk', 'chdn',  0], ['rch_kk', 'bma',   0],
+  ['phc',    'kdhw',  0], ['phc',    'bma',    0], ['phc',    'bphwt', 0],
+  ['chain',  'kdhw',  0], ['chain',  'chdn',   0], ['chain',  'iec',   0],
+  ['chain',  'bma',   0], ['chain',  'bphwt',  0], ['chain',  'kwo',   0], ['chain',  'knwo',  0], ['chain',  'mtc',   0],
+  ['dfat',   'kdhw',  0], ['dfat',   'fracts', 0], ['dfat',   'soh',   0], ['dfat',   'kwo',   0], ['dfat',   'knwo',  0],
+  ['sipd',   'kdhw',  1], ['sipd',   'khp',    0], ['sipd',   'oto',   0], ['sipd',   'bphwt', 1], ['sipd',   'chdn',  0],
+
+  // Projects → Data Types
+  ['spp',    'mnch',  0], ['spp',    'nutr',   0], ['spp',    'hss',   0],
+  ['sharp',  'surv',  0], ['sharp',  'epi',    0], ['sharp',  'nutr',  0], ['sharp',  'accsi', 0],
+  ['rch_kk', 'mnch',  0], ['rch_kk', 'nutr',   0], ['rch_kk', 'tb',    0], ['rch_kk', 'epi',   0], ['rch_kk', 'accsi', 0], ['rch_kk', 'gedsi', 0],
+  ['phc',    'mnch',  0], ['phc',    'accsi',  0],
+  ['chain',  'mnch',  0], ['chain',  'hgov',   0], ['chain',  'hss',   0], ['chain',  'accsi', 0],
+  ['dfat',   'gbv',   0],
+  ['sipd',   'hum',   0], ['sipd',   'disab',  0],
+
+  // Data Types → Reporting
+  ['surv',      'data_auto', 0], ['epi',   'data_auto', 0],
+  ['mnch',      'data_auto', 0], ['nutr',  'data_auto', 0], ['tb',    'data_auto', 0],
+  ['gbv',       'logframe',  0], ['disab', 'logframe',  0], ['hum',   'logframe',  0],
+
+  // Reporting → Verification → RDQA → Donor Reporting → Donors
+  ['data_auto', 'logframe',  0], ['data_auto', 'verif', 0], ['logframe', 'verif', 0],
+  ['verif',     'rdqa',      0],
+  ['rdqa',      'donorrep',  0],
+  ['donorrep',  'donors',    0],
+];
+
+// ── Layer order ────────────────────────────────────────────────────────
+const LORDER = ['partner','project','datatype','reporting','verif','rdqa','donorrep','donors'];
+const lIdx = id => LORDER.indexOf(ND[id] ? ND[id].ly : -1);
+
+// ── Directed adjacency maps ────────────────────────────────────────────
+let FWD = {}, BWD = {};
+function buildAdjacency() {
+  FWD = {}; BWD = {};
+  LK.forEach(([a,b]) => {
+    if(!ND[a] || !ND[b]) return;
+    const ai = LORDER.indexOf(ND[a].ly), bi = LORDER.indexOf(ND[b].ly);
+    const from = ai <= bi ? a : b, to = ai <= bi ? b : a;
+    (FWD[from]=FWD[from]||[]).push(to);
+    (BWD[to]  =BWD[to]  ||[]).push(from);
+  });
+}
+buildAdjacency();
+
+function bfs(startId, map) {
+  const vis = new Set([startId]); const q = [startId];
+  while (q.length) (map[q.shift()]||[]).forEach(n=>{ if(!vis.has(n)){vis.add(n);q.push(n);} });
+  return vis;
+}
+function fullChain(id) {
+  return new Set([...bfs(id,FWD),...bfs(id,BWD)]);
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────
+function edge(id,side) {
+  const n=ND[id],hw=n.w/2,hh=n.h/2;
+  if(side==='top')    return [n.x,n.y-hh];
+  if(side==='bottom') return [n.x,n.y+hh];
+  if(side==='left')   return [n.x-hw,n.y];
+  return [n.x+hw,n.y];
+}
+function svgEl(tag,attrs) {
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  return el;
+}
+function buildPath(a,b) {
+  const na=ND[a],nb=ND[b];
+  if(!na || !nb) return ''; // Protection for deleted nodes
+  const top=na.y<=nb.y?a:b, bot=na.y<=nb.y?b:a;
+  const [x1,y1]=edge(top,'bottom'), [x2,y2]=edge(bot,'top');
+  const my=(y1+y2)/2;
+  return `M${x1} ${y1}C${x1} ${my} ${x2} ${my} ${x2} ${y2}`;
+}
+
+// ── Render links ───────────────────────────────────────────────────────
+const lkg=document.getElementById('lkg');
+const ndg=document.getElementById('ndg');
+
+// Link layer-pair for highlight coloring
+function linkLayerPair(a, b) {
+  if(!ND[a] || !ND[b]) return 'other';
+  const la = ND[a].ly, lb = ND[b].ly;
+  if((la==='partner'&&lb==='project')||(la==='project'&&lb==='partner')) return 'partner-project';
+  if((la==='project'&&lb==='datatype')||(la==='datatype'&&lb==='project')) return 'project-datatype';
+  return 'other';
+}
+
+const FLOW_EXCLUDE=new Set(['gedsi','accsi','hss','hgov']);
+
+function renderBaseView() {
+  lkg.innerHTML = '';
+  ndg.innerHTML = '';
+  
+  LK.forEach(([a,b,dashed]) => {
+    if(FLOW_EXCLUDE.has(a)||FLOW_EXCLUDE.has(b)) return; // skip TH-only links
+    if(!ND[a] || !ND[b]) return;
+    const p=svgEl('path',{
+      d:buildPath(a,b), fill:'none', stroke:'#cbd5e1', 'stroke-width':'1.5',
+      'stroke-dasharray':dashed?'5,3':'', 'marker-end':'url(#ma)', class:'lp',
+    });
+    p.dataset.a=a; p.dataset.b=b; p.dataset.d=dashed;
+    p.dataset.pair=linkLayerPair(a,b);
+    lkg.appendChild(p);
+  });
+
+  Object.entries(ND).forEach(([id,n]) => {
+    if(FLOW_EXCLUDE.has(id)) return; // skip Thematics-only nodes
+    const cl=C[n.ly];
+    const g=svgEl('g',{id:'n-'+id}); g.style.cursor='grab';
+
+    const r=svgEl('rect',{
+      x:n.x-n.w/2, y:n.y-n.h/2, width:n.w, height:n.h,
+      rx:'7', fill:cl.fill, stroke:cl.stroke, 'stroke-width':'1.5',
+    });
+    r.style.transition='stroke .2s,stroke-width .15s,fill .2s';
+    g.appendChild(r);
+
+    const mkT=(txt,cx,cy,fs)=>{
+      const t=svgEl('text',{x:cx,y:cy,'text-anchor':'middle','dominant-baseline':'middle',fill:cl.text,'font-size':fs,'font-weight':'600'});
+      t.textContent=txt; return t;
+    };
+    if(n.two){
+      const[l1,l2]=n.lbl.split('\n');
+      const fs=n.w>280?11:11;
+      g.appendChild(mkT(l1,n.x,n.y-9,fs));
+      g.appendChild(mkT(l2,n.x,n.y+9,fs));
+    } else {
+      const fs=n.w>350?11:n.w>100?11:12;
+      g.appendChild(mkT(n.lbl,n.x,n.y,fs));
+    }
+    g.addEventListener('mousedown',e=>startDrag(e,id));
+    ndg.appendChild(g);
+  });
+}
+renderBaseView();
+
+// ── Drag + Click ───────────────────────────────────────────────────────
+let sel=new Set(), drag=null;
+
+function getSVGPt(e) {
+  const svg=document.getElementById('wf');
+  const pt=svg.createSVGPoint();
+  const src=e.touches?e.touches[0]:e;
+  pt.x=src.clientX; pt.y=src.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+function startDrag(e,id) {
+  lastEvent=e;
+  e.stopPropagation(); e.preventDefault();
+  const pt=getSVGPt(e);
+  drag={id,ox:pt.x-ND[id].x,oy:pt.y-ND[id].y,moved:false,raf:null,nx:ND[id].x,ny:ND[id].y};
+  const g=document.getElementById('n-'+id);
+  g.style.cursor='grabbing';
+  g.style.filter='drop-shadow(0 0 10px #38bdf8aa)';
+  g.style.transform='scale(1.06)';
+  g.style.transformOrigin=`${ND[id].x}px ${ND[id].y}px`;
+// highlight live connections
+  document.querySelectorAll('.lp').forEach(p=>{
+    if(p.dataset.a===id||p.dataset.b===id){
+      // Use the solid dark indigo during drag state
+      p.setAttribute('stroke', '#485B9A');
+      p.setAttribute('stroke-width','3');
+      p.setAttribute('stroke-dasharray',p.dataset.d==='1'?'6,4':'');
+      p.setAttribute('marker-end','url(#mb)');
+    }
+  });
+  ndg.appendChild(g);
+}
+
+function rafUpdate() {
+  if(!drag) return;
+  const id=drag.id, nx=drag.nx, ny=drag.ny;
+  ND[id].x=nx; ND[id].y=ny;
+  const g=document.getElementById('n-'+id), n=ND[id];
+  g.querySelector('rect').setAttribute('x',nx-n.w/2);
+  g.querySelector('rect').setAttribute('y',ny-n.h/2);
+  g.style.transformOrigin=`${nx}px ${ny}px`;
+  const texts=g.querySelectorAll('text');
+  if(n.two){texts[0].setAttribute('x',nx);texts[0].setAttribute('y',ny-9);texts[1].setAttribute('x',nx);texts[1].setAttribute('y',ny+9);}
+  else{texts[0].setAttribute('x',nx);texts[0].setAttribute('y',ny);}
+  document.querySelectorAll('.lp').forEach(p=>{
+    if(p.dataset.a===id||p.dataset.b===id) p.setAttribute('d',buildPath(p.dataset.a,p.dataset.b));
+  });
+  if(sel) applyHighlight(sel);
+  drag.raf=null;
+}
+
+function onMove(e) {
+  lastEvent=e;
+  if(!drag) return; e.preventDefault();
+  const pt=getSVGPt(e);
+  drag.nx=pt.x-drag.ox; drag.ny=pt.y-drag.oy;
+  if(Math.abs(drag.nx-ND[drag.id].x)>2||Math.abs(drag.ny-ND[drag.id].y)>2) drag.moved=true;
+  if(!drag.raf) drag.raf=requestAnimationFrame(rafUpdate);
+}
+
+function onUp() {
+  if(!drag) return;
+  if(drag.raf){ cancelAnimationFrame(drag.raf); rafUpdate(); }
+  const id=drag.id, moved=drag.moved;
+  const g=document.getElementById('n-'+id);
+  g.style.cursor='grab';
+  g.style.filter='';
+  g.style.transform='';
+  // restore link styles
+  document.querySelectorAll('.lp').forEach(p=>{
+    if(p.dataset.a===id||p.dataset.b===id){
+      if(!sel.size){
+        p.setAttribute('stroke','#E4E8F0'); p.setAttribute('stroke-width','1.5');
+        p.setAttribute('marker-end','url(#ma)');
+        p.setAttribute('stroke-dasharray',p.dataset.d==='1'?'5,3':'');
+      }
+    }
+  });
+  drag=null;
+  if(!moved) select(id, lastEvent && lastEvent.shiftKey);
+  else if(sel.size) applyHighlight();
+  else reset();
+}
+
+let lastEvent=null;
+
+const svg=document.getElementById('wf');
+svg.addEventListener('mousemove',onMove);
+svg.addEventListener('mouseup',onUp);
+svg.addEventListener('mouseleave',onUp);
+svg.addEventListener('touchmove',onMove,{passive:false});
+svg.addEventListener('touchend',onUp);
+svg.addEventListener('click',e=>{ if(!e.target.closest('#ndg')&&sel.size) reset(); });
+
+// ── Highlight ──────────────────────────────────────────────────────────
+function applyHighlight() {
+  const conn=new Set();
+  sel.forEach(id=>{ fullChain(id).forEach(n=>conn.add(n)); });
+  Object.keys(ND).forEach(nid=>{
+    const g=document.getElementById('n-'+nid);
+    if(!g) return;
+    const r=g.querySelector('rect');
+    if(conn.has(nid)){
+      g.style.opacity='1'; g.style.pointerEvents='auto';
+      r.setAttribute('stroke',C[ND[nid].ly].hi);
+      r.setAttribute('stroke-width',sel.has(nid)?'3':'2');
+    } else {
+      g.style.opacity='0.15'; g.style.pointerEvents='auto';
+      r.setAttribute('stroke',C[ND[nid].ly].stroke);
+      r.setAttribute('stroke-width','1.5');
+    }
+  });
+  document.querySelectorAll('.lp').forEach(p=>{
+    if(conn.has(p.dataset.a)&&conn.has(p.dataset.b)){
+      // Use the solid dark indigo for all active connections
+      p.setAttribute('stroke','#485B9A'); 
+      p.setAttribute('stroke-width','2.5');
+      p.setAttribute('stroke-dasharray',p.dataset.d==='1'?'6,4':'');
+      p.setAttribute('marker-end','url(#mb)'); p.style.opacity='1';
+    } else { p.style.opacity='0.06'; }
+  });
+  const names=[...sel].map(id=>ND[id].lbl.replace('\n',' ')).join(' + ');
+  const inf=document.getElementById('inf');
+  inf.className='msg on';
+  inf.textContent=sel.size===1?`${names} — ${ND[[...sel][0]].info}`:`Selected: ${names}`;
+  document.getElementById('btn-clear').style.display=sel.size?'inline-flex':'none';
+}
+
+function select(id, multi=false){
+  if(multi){
+    // Shift+click: add/remove from selection
+    if(sel.has(id)){ sel.delete(id); if(!sel.size){reset();return;} }
+    else { sel.add(id); }
+  } else {
+    // Normal click: switch to single selection
+    if(sel.size===1 && sel.has(id)){ reset(); return; }
+    sel.clear(); sel.add(id);
+  }
+  applyHighlight();
+}
+
+function reset(){
+  sel.clear();
+  Object.keys(ND).forEach(nid=>{
+    const g=document.getElementById('n-'+nid); 
+    if(!g) return;
+    g.style.opacity='1';
+    const r=g.querySelector('rect');
+    r.setAttribute('stroke',C[ND[nid].ly].stroke); r.setAttribute('stroke-width','1.5');
+  });
+  document.querySelectorAll('.lp').forEach(p=>{
+    p.setAttribute('stroke','#E4E8F0'); p.setAttribute('stroke-width','1.5');
+    p.setAttribute('marker-end','url(#ma)'); p.style.opacity='1';
+    p.setAttribute('stroke-dasharray',p.dataset.d==='1'?'5,3':'');
+  });
+  const inf=document.getElementById('inf');
+  inf.className='msg';
+  inf.textContent='Click to trace chain · Click multiple nodes to combine · Drag freely';
+  document.getElementById('btn-clear').style.display='none';
+}
+
+// ── Edit Mode ─────────────────────────────────────────────────────────
+let editMode=false;
+let editSelA=null, editSelB=null;
+let renameTargetId=null;
+let editPanelMinimized=false;
+
+function toggleMinimizeEdit() {
+  editPanelMinimized = !editPanelMinimized;
+  const body = document.getElementById('edit-panel-body');
+  const btn = document.getElementById('btn-minimize-edit');
+  if (editPanelMinimized) {
+    body.style.display = 'none';
+    btn.textContent = '□';
+    btn.style.fontSize = '14px';
+  } else {
+    body.style.display = 'flex';
+    btn.textContent = '−';
+    btn.style.fontSize = '18px';
+  }
+}
+
+function toggleEditMode(){
+  editMode=!editMode;
+  const btn=document.getElementById('btn-edit');
+  const panel=document.getElementById('edit-panel');
+  const lbl=document.getElementById('edit-view-label');
+  if(editMode){
+    btn.style.background='#485B9A'; btn.style.color='#fff'; btn.style.borderColor='#485B9A';
+    btn.textContent='✏️ Editing';
+    panel.style.display='block';
+    if(lbl) lbl.textContent=currentView==='flow'?'Data Flow':currentView==='network'?'Network':'Thematics';
+    
+    // Reset to expanded state when opening
+    editPanelMinimized = false;
+    const body = document.getElementById('edit-panel-body');
+    if (body) body.style.display = 'flex';
+    const minBtn = document.getElementById('btn-minimize-edit');
+    if (minBtn) {
+       minBtn.textContent = '−';
+       minBtn.style.fontSize = '18px';
+    }
+  } else {
+    btn.style.background=''; btn.style.color=''; btn.style.borderColor='';
+    btn.textContent='✏️ Edit';
+    panel.style.display='none';
+    resetEditSelUI();
+  }
+}
+
+// Generates snippet of JS to paste into code
+function copyDataForServer() {
+  const ndStr = JSON.stringify(ND, null, 2);
+  const lkStr = JSON.stringify(LK);
+  
+  const codeToPaste = `// =====================================
+// PASTE THIS OVER YOUR EXISTING ND AND LK VARIABLES
+// =====================================
+
+let ND = ${ndStr};
+
+let LK = ${lkStr};
+`;
+
+  navigator.clipboard.writeText(codeToPaste).then(() => {
+    alert("✅ Data copied to clipboard!\n\nOpen your HTML file, replace the old 'let ND =' and 'let LK =' sections with this copied text, and save the file.");
+  }).catch(err => {
+    console.error('Failed to copy: ', err);
+    alert("Could not copy automatically. Check your browser console (F12) to copy the text manually.");
+    console.log(codeToPaste);
+  });
+}
+
+function resetEditSelUI(){
+  document.getElementById('edit-sel-a').textContent='① Select first node…';
+  document.getElementById('edit-sel-a').style.color='#6B7385';
+  document.getElementById('edit-sel-b').textContent='② Select second node…';
+  document.getElementById('edit-sel-b').style.color='#6B7385';
+  document.getElementById('edit-conn-result').textContent='';
+  editSelA=null; editSelB=null;
+}
+
+function addEditNode(layer){
+  const inp=document.getElementById(layer==='partner'?'inp-partner':layer==='project'?'inp-project':'inp-thematic');
+  const name=inp.value.trim();
+  if(!name){alert('Please enter a name');return;}
+  const prefix=layer==='partner'?'p_':layer==='project'?'proj_':'t_';
+  const id=prefix+name.toLowerCase().replace(/\s+/g,'_')+Date.now();
+  const w=Math.max(80,name.length*8+24);
+  const yPos=layer==='partner'?65:layer==='project'?163:292;
+  const hPos=layer==='partner'?36:layer==='project'?38:50;
+  ND[id]={ lbl:name, x:300, y:yPos, w, h:hPos, ly:layer, info:name };
+  inp.value='';
+  
+  buildAdjacency();
+  rebuildCurrentView();
+}
+
+function rebuildCurrentView(){
+  if(currentView==='thematics'||currentView==='flow'){
+    thBuilt=false;
+    const svg=document.getElementById('th-svg');
+    if(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
+    if(currentView==='thematics') {
+        buildThematics();
+    } else if (currentView==='flow') {
+        renderBaseView();
+    }
+  } else if (currentView==='network') {
+    initNetwork();
+  }
+}
+
+function editNodeClick(id, lbl){
+  if(!editMode) return false;
+  if(!editSelA){
+    editSelA=id;
+    document.getElementById('edit-sel-a').textContent='① '+lbl;
+    document.getElementById('edit-sel-a').style.color='#485B9A';
+    return true;
+  }
+  if(editSelA===id){ resetEditSelUI(); return true; }
+  editSelB=id;
+  document.getElementById('edit-sel-b').textContent='② '+lbl;
+  document.getElementById('edit-sel-b').style.color='#2A3357';
+  const res=document.getElementById('edit-conn-result');
+  const exists=LK.findIndex(([a,b])=>(a===editSelA&&b===editSelB)||(a===editSelB&&b===editSelA));
+  if(exists>=0){
+    LK.splice(exists,1);
+    res.textContent='✂ Connection removed'; res.style.color='#c0392b';
+  } else {
+    LK.push([editSelA,editSelB,0]);
+    res.textContent='✓ Connection added'; res.style.color='#27ae60';
+  }
+  
+  buildAdjacency();
+  setTimeout(()=>{ resetEditSelUI(); rebuildCurrentView(); },700);
+  return true;
+}
+
+function editNodeRename(id, currentLbl){
+  if(!editMode) return;
+  renameTargetId=id;
+  document.getElementById('rename-input').value=currentLbl.replace('\n',' ');
+  const modal=document.getElementById('rename-modal');
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('rename-input').focus(),50);
+}
+
+function confirmRename(){
+  const newName=document.getElementById('rename-input').value.trim();
+  if(!newName||!renameTargetId){closeRename();return;}
+  const n=ND[renameTargetId];
+  if(n){
+    n.lbl=newName;
+    n.w=Math.max(80,newName.length*8+24);
+    n.two=newName.includes('\n')?1:0;
+  }
+  closeRename();
+  rebuildCurrentView();
+}
+
+function closeRename(){
+  document.getElementById('rename-modal').style.display='none';
+  renameTargetId=null;
+}
+
+function editNodeDelete(id, lbl){
+  if(!editMode) return;
+  if(!confirm('Delete "'+lbl+'"?')) return;
+  delete ND[id];
+  for(let i=LK.length-1;i>=0;i--){
+    if(LK[i][0]===id||LK[i][1]===id) LK.splice(i,1);
+  }
+  
+  buildAdjacency();
+  rebuildCurrentView();
+}
+let netInited=false;
+const TH_LAYERS=new Set(['partner','project','datatype']);
+
+function switchView(v){
+  currentView=v;
+  document.querySelector('.canvas-wrap').style.display='none';
+  document.getElementById('net-wrap').style.display='none';
+  document.getElementById('th-wrap').style.display='none';
+  document.querySelector('.infobar').style.display='none';
+
+  document.getElementById('btn-flow').classList.toggle('active',v==='flow');
+  document.getElementById('btn-thematics').classList.toggle('active',v==='thematics');
+  document.getElementById('btn-net').classList.toggle('active',v==='network');
+
+  if(v==='flow'){
+    document.querySelector('.canvas-wrap').style.display='flex';
+    document.querySelector('.infobar').style.display='flex';
+  } else if(v==='thematics'){
+    const tw=document.getElementById('th-wrap');
+    tw.style.display='flex';
+    tw.style.flexDirection='column';
+    setTimeout(()=>buildThematics(), 150);
+  } else {
+    document.getElementById('net-wrap').style.display='flex';
+    document.getElementById('net-wrap').style.flexDirection='column';
+    if(!netInited){ setTimeout(()=>{ initNetwork(); netInited=true; }, 50); }
+  }
+}
+</script>
+
+<div id="th-wrap" style="display:none;flex:1;overflow:hidden;background:var(--mist);padding:20px;box-sizing:border-box">
+  <svg id="th-svg" style="display:block;border-radius:12px;box-shadow:0 4px 24px rgba(42,51,87,.10)"></svg>
+</div>
+
+<script>
+let thBuilt=false;
+let currentView='flow';
+let thResetFn=null; // exposed by buildThematics
+
+function clearCurrent(){
+  if(currentView==='thematics' && thResetFn) thResetFn();
+  else reset();
+}
+function buildThematics(){
+  if(thBuilt) return;
+  thBuilt=true;
+
+  const LAYERS=['partner','project','datatype'];
+
+  // Thematics page excludes Disability Focus, adds GEDSI + Accountability
+  const TH_EXCLUDE = new Set(['disab']);
+  const TH_ONLY    = new Set(['gedsi','accsi','hss','hgov']); // only shown in Thematics page
+  const thNodes=Object.entries(ND).filter(([id,n])=>LAYERS.includes(n.ly)&&!TH_EXCLUDE.has(id));
+  const thIds=new Set(thNodes.map(([id])=>id));
+  const thLinks=LK.filter(([a,b])=>thIds.has(a)&&thIds.has(b));
+
+  const thWrap=document.getElementById('th-wrap');
+  const H=Math.max(thWrap.clientHeight||window.innerHeight-190, 500);
+  const W=Math.max(thWrap.clientWidth||window.innerWidth-40, 900);
+
+  const YS={
+    partner: Math.round(H*0.15),
+    project: Math.round(H*0.48),
+    datatype:Math.round(H*0.82),
+  };
+
+  // X positions per layer
+  const byLayer={};
+  LAYERS.forEach(l=>{byLayer[l]=thNodes.filter(([,n])=>n.ly===l);});
+  const pos={};
+  LAYERS.forEach(ly=>{
+    const arr=byLayer[ly],cnt=arr.length;
+    arr.forEach(([id,n],i)=>{
+      pos[id]={...n, x: Math.round(160+((i+0.5)*((W-160)/cnt))), y:YS[ly]};
+    });
+  });
+
+  const svg=document.getElementById('th-svg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width','100%');
+  svg.setAttribute('height','100%');
+  svg.style.width='100%';
+  svg.style.height='100%';
+  svg.style.minWidth='';
+  svg.style.display='block';
+
+  function el(tag,attrs={},txt){
+    const e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+    Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));
+    if(txt!==undefined) e.textContent=txt;
+    return e;
+  }
+
+  // Background
+  svg.appendChild(el('rect',{width:W,height:H,fill:'#fff'}));
+
+  // Bands
+  const bw=W-144;
+  svg.appendChild(el('rect',{x:144,y:0,     width:bw,height:Math.round(H*0.32),fill:'#485B9A',opacity:0.05}));
+  svg.appendChild(el('rect',{x:144,y:Math.round(H*0.32),width:bw,height:Math.round(H*0.33),fill:'#2A3357',opacity:0.03}));
+  svg.appendChild(el('rect',{x:144,y:Math.round(H*0.65),width:bw,height:Math.round(H*0.35),fill:'#485B9A',opacity:0.04}));
+
+  // Sidebar
+  svg.appendChild(el('rect',{x:0,y:0,width:144,height:H,fill:'#2A3357'}));
+  svg.appendChild(el('rect',{x:0,y:0,width:6,height:H,fill:'#485B9A'}));
+  svg.appendChild(el('line',{x1:144,y1:0,x2:144,y2:H,stroke:'#485B9A','stroke-width':1.5}));
+
+  const sideLbls=[
+    {y:0,    h:Math.round(H*0.32), fill:'#485B9A', label:'PARTNERS'},
+    {y:Math.round(H*0.32), h:Math.round(H*0.33), fill:'#2A3357', label:'PROJECTS'},
+    {y:Math.round(H*0.65), h:Math.round(H*0.35), fill:'#485B9A', label:'THEMATICS', opacity:0.7},
+  ];
+  sideLbls.forEach(s=>{
+    const r=el('rect',{x:4,y:s.y+4,width:136,height:s.h-8,fill:s.fill,rx:8});
+    if(s.opacity) r.setAttribute('opacity',s.opacity);
+    svg.appendChild(r);
+    const t=el('text',{x:72,y:s.y+s.h/2,'text-anchor':'middle','dominant-baseline':'middle',
+      'font-size':12,'font-weight':700,fill:'#fff','letter-spacing':1,
+      'font-family':"'Barlow Condensed',sans-serif"},s.label);
+    svg.appendChild(t);
+  });
+
+  // Dividers
+  [Math.round(H*0.32), Math.round(H*0.65)].forEach(y=>
+    svg.appendChild(el('line',{x1:144,y1:y,x2:W,y2:y,stroke:'#E4E8F0','stroke-width':1}))
+  );
+
+  // Defs for arrows
+  const defs=el('defs');
+  ['a','b'].forEach(id=>{
+    const m=el('marker',{id:'th'+id,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:5,markerHeight:5,orient:'auto'});
+    const p=el('path',{d:'M2 2L8 5L2 8',fill:'none',stroke:id==='a'?'#A3ADCC':'#485B9A','stroke-width':1.5,'stroke-linecap':'round'});
+    m.appendChild(p); defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+
+  // Links group
+  const lkg=el('g'); svg.appendChild(lkg);
+  // Nodes group
+  const ndg=el('g'); svg.appendChild(ndg);
+
+  function path(a,b){
+    const na=pos[a],nb=pos[b];
+    const top=na.y<nb.y?na:nb, bot=na.y<nb.y?nb:na;
+    const x1=top.x,y1=top.y+top.h/2,x2=bot.x,y2=bot.y-bot.h/2;
+    const my=(y1+y2)/2;
+    return `M${x1} ${y1}C${x1} ${my} ${x2} ${my} ${x2} ${y2}`;
+  }
+
+  thLinks.forEach(([a,b,d])=>{
+    const p=el('path',{d:path(a,b),fill:'none',stroke:'#A3ADCC','stroke-width':1.8,
+      'stroke-dasharray':'none','marker-end':'url(#tha)',class:'th-lp'});
+    p.dataset.a=a; p.dataset.b=b; p.dataset.d=0; // force solid always
+    p.dataset.pair=linkLayerPair(a,b);
+    lkg.appendChild(p);
+  });
+
+  // Nodes — multi-select
+  let thSel=new Set();
+
+  function applyThHighlight(){
+    const LAYER_IDX={partner:0, project:1, datatype:2};
+    const conn=new Set();
+    thSel.forEach(id=>conn.add(id));
+    const selLayers=[...thSel].map(id=>LAYER_IDX[ND[id]?.ly]??0);
+    const minSelLy=Math.min(...selLayers);
+
+    const fwdSeeds=new Set([...thSel]);
+    let changed=true;
+    while(changed){
+      changed=false;
+      thLinks.forEach(([a,b])=>{
+        const aLy=LAYER_IDX[ND[a]?.ly]??0;
+        const bLy=LAYER_IDX[ND[b]?.ly]??2;
+        const up=aLy<=bLy?a:b, down=aLy<=bLy?b:a;
+        if(fwdSeeds.has(up)&&!conn.has(down)){
+          conn.add(down); fwdSeeds.add(down); changed=true;
+        }
+      });
+    }
+
+    if(minSelLy>0){
+      const bwdSeeds=new Set([...thSel]);
+      let bc=true;
+      while(bc){
+        bc=false;
+        thLinks.forEach(([a,b])=>{
+          const aLy=LAYER_IDX[ND[a]?.ly]??0;
+          const bLy=LAYER_IDX[ND[b]?.ly]??2;
+          const up=aLy<=bLy?a:b, down=aLy<=bLy?b:a;
+          if(bwdSeeds.has(down)&&!conn.has(up)){
+            conn.add(up); bwdSeeds.add(up); bc=true;
+          }
+        });
+      }
+    }
+
+    // Use element ID not index position (drag reorders DOM)
+    ndg.querySelectorAll('g').forEach(gg=>{
+      const nid=gg.id.replace('th-n-','');
+      if(!nid||!pos[nid]) return;
+      const r=gg.querySelector('rect');
+      if(conn.has(nid)){
+        gg.style.opacity='1';
+        r.setAttribute('stroke',C[pos[nid].ly].hi);
+        r.setAttribute('stroke-width',thSel.has(nid)?3:2);
+      } else {
+        gg.style.opacity='0.12';
+        r.setAttribute('stroke',C[pos[nid].ly].stroke);
+        r.setAttribute('stroke-width',1.5);
+      }
+    });
+    lkg.querySelectorAll('path').forEach(p=>{
+      if(conn.has(p.dataset.a)&&conn.has(p.dataset.b)){
+        p.setAttribute('stroke','#485B9A'); p.setAttribute('stroke-width',2.5);
+        p.setAttribute('stroke-dasharray','none');
+        p.setAttribute('marker-end','url(#thb)'); p.style.opacity='1';
+      } else { p.style.opacity='0.06'; }
+    });
+    document.getElementById('btn-clear').style.display='inline-flex';
+  }
+
+  function thReset(){
+    thSel.clear();
+    // Use element ID not index position
+    ndg.querySelectorAll('g').forEach(gg=>{
+      const nid=gg.id.replace('th-n-','');
+      if(!nid||!pos[nid]) return;
+      gg.style.opacity='1';
+      const r=gg.querySelector('rect');
+      r.setAttribute('stroke',C[pos[nid].ly].stroke); r.setAttribute('stroke-width',1.5);
+    });
+    lkg.querySelectorAll('path').forEach(p=>{
+      p.setAttribute('stroke','#A3ADCC'); p.setAttribute('stroke-width',1.8);
+      p.setAttribute('marker-end','url(#tha)'); p.style.opacity='1';
+      p.setAttribute('stroke-dasharray','');
+    });
+    document.getElementById('btn-clear').style.display='none';
+  }
+  thResetFn=thReset;
+
+  // ── Drag (RAF pattern same as Data Management Flow) ───────────────────
+  let thDrag=null;
+
+  function getThPt(e){
+    const pt=svg.createSVGPoint();
+    const src=e.touches?e.touches[0]:e;
+    pt.x=src.clientX; pt.y=src.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  function thRafUpdate(){
+    if(!thDrag) return;
+    const id=thDrag.id, nx=thDrag.nx, ny=thDrag.ny;
+    pos[id].x=nx; pos[id].y=ny;
+    const g=document.getElementById('th-n-'+id), n=pos[id];
+    g.querySelector('rect').setAttribute('x',nx-n.w/2);
+    g.querySelector('rect').setAttribute('y',ny-n.h/2);
+    const texts=g.querySelectorAll('text');
+    if(n.two){texts[0].setAttribute('x',nx);texts[0].setAttribute('y',ny-9);texts[1].setAttribute('x',nx);texts[1].setAttribute('y',ny+9);}
+    else if(texts[0]){texts[0].setAttribute('x',nx);texts[0].setAttribute('y',ny);}
+    lkg.querySelectorAll('path').forEach(p=>{
+      if(p.dataset.a===id||p.dataset.b===id) p.setAttribute('d',path(p.dataset.a,p.dataset.b));
+    });
+    thDrag.raf=null;
+  }
+
+  Object.entries(pos).forEach(([id,n])=>{
+    const cl=C[n.ly];
+    const g=el('g',{id:'th-n-'+id}); g.style.cursor='grab';
+    g.appendChild(el('rect',{x:n.x-n.w/2,y:n.y-n.h/2,width:n.w,height:n.h,rx:7,fill:cl.fill,stroke:cl.stroke,'stroke-width':1.5}));
+    if(n.two){
+      const[l1,l2]=n.lbl.split('\n');
+      g.appendChild(el('text',{x:n.x,y:n.y-9,'text-anchor':'middle','dominant-baseline':'middle',fill:cl.text,'font-size':11,'font-weight':600},l1));
+      g.appendChild(el('text',{x:n.x,y:n.y+9,'text-anchor':'middle','dominant-baseline':'middle',fill:cl.text,'font-size':11,'font-weight':600},l2));
+    } else {
+      g.appendChild(el('text',{x:n.x,y:n.y,'text-anchor':'middle','dominant-baseline':'middle',fill:cl.text,'font-size':11,'font-weight':600},n.lbl));
+    }
+    g.addEventListener('contextmenu', e=>{
+      e.preventDefault(); e.stopPropagation();
+      if(editMode) editNodeDelete(id, n.lbl.replace('\n',' '));
+    });
+    g.addEventListener('dblclick', e=>{
+      e.stopPropagation();
+      editNodeRename(id, n.lbl);
+    });
+    g.addEventListener('mousedown', e=>{
+      e.stopPropagation(); e.preventDefault();
+      if(editMode){ editNodeClick(id, n.lbl.replace('\n',' ')); return; }
+      const pt=getThPt(e);
+      thDrag={id, ox:pt.x-pos[id].x, oy:pt.y-pos[id].y, moved:false, raf:null,
+              nx:pos[id].x, ny:pos[id].y, shift:e.shiftKey};
+      g.style.cursor='grabbing';
+      g.style.filter='drop-shadow(0 0 10px #485B9Aaa)';
+      ndg.appendChild(g);
+    });
+    ndg.appendChild(g);
+  });
+
+  svg.addEventListener('mousemove', e=>{
+    if(!thDrag) return; e.preventDefault();
+    const pt=getThPt(e);
+    thDrag.nx=pt.x-thDrag.ox; thDrag.ny=pt.y-thDrag.oy;
+    if(Math.abs(thDrag.nx-pos[thDrag.id].x)>2||Math.abs(thDrag.ny-pos[thDrag.id].y)>2) thDrag.moved=true;
+    if(!thDrag.raf) thDrag.raf=requestAnimationFrame(thRafUpdate);
+  });
+
+  svg.addEventListener('mouseup', ()=>{
+    if(!thDrag) return;
+    if(thDrag.raf){ cancelAnimationFrame(thDrag.raf); thRafUpdate(); }
+    const {id, moved, shift}=thDrag;
+    const g=document.getElementById('th-n-'+id);
+    g.style.cursor='grab'; g.style.filter='';
+    thDrag=null;
+    if(!moved){
+      if(shift){
+        if(thSel.has(id)){ thSel.delete(id); if(!thSel.size){thReset();return;} }
+        else { thSel.add(id); }
+      } else {
+        if(thSel.size===1&&thSel.has(id)){ thReset(); return; }
+        thSel.clear(); thSel.add(id);
+      }
+      if(thSel.size) applyThHighlight();
+    }
+  });
+
+  svg.addEventListener('mouseleave', ()=>{
+    if(!thDrag) return;
+    if(thDrag.raf){ cancelAnimationFrame(thDrag.raf); thRafUpdate(); }
+    const g=document.getElementById('th-n-'+thDrag.id);
+    g.style.cursor='grab'; g.style.filter='';
+    thDrag=null;
+  });
+
+  svg.addEventListener('mousedown', e=>{ if(!e.target.closest('g')&&thSel.size) thReset(); });
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+// ── Network View (D3 force) ────────────────────────────────────────────
+function initNetwork(){
+
+  const SHOW_LAYERS = new Set(['partner','project','datatype']);
+
+  // Build base nodes — same thematic set as Thematics by Partner page
+  // Exclude: disab (Disability Focus)
+  // Include: gedsi, accsi, hss, hgov (Thematics-page-only nodes)
+  const NET_EXCLUDE = new Set(['disab']);
+  const baseNodes = Object.entries(ND)
+    .filter(([id,n])=>SHOW_LAYERS.has(n.ly)&&!NET_EXCLUDE.has(id))
+    .map(([id,n])=>({ id, lbl:n.lbl.replace('\n',' '), ly:n.ly }));
+
+  // Add SE REACH central hub
+  baseNodes.push({ id:'se_reach', lbl:'SE REACH', ly:'hub' });
+
+  const nodeIds = new Set(baseNodes.map(n=>n.id));
+
+  // All links where both nodes exist in our set
+  const baseLinks = LK
+    .filter(([s,t])=>nodeIds.has(s)&&nodeIds.has(t))
+    .map(([s,t,d])=>({ source:s, target:t, dashed:d, type:'normal' }));
+
+  // Hub links: SE REACH ↔ partners only
+  baseNodes.forEach(n=>{
+    if(n.ly==='partner')
+      baseLinks.push({ source:'se_reach', target:n.id, dashed:0, type:'hub' });
+  });
+
+  // Degree count (connections per node, excluding hub links for sizing)
+  const degree={};
+  baseNodes.forEach(n=>{ degree[n.id]=0; });
+  baseLinks.filter(l=>l.type==='normal').forEach(l=>{
+    const s=l.source.id||l.source, t=l.target.id||l.target;
+    degree[s]=(degree[s]||0)+1;
+    degree[t]=(degree[t]||0)+1;
+  });
+
+  // Fixed radius per layer — text always fits inside
+  baseNodes.forEach(n=>{
+    if(n.id==='se_reach') n.r=44;
+    else if(n.ly==='partner') n.r=28;
+    else if(n.ly==='project') n.r=28;
+    else n.r=28;
+  });
+
+  const LC = {
+    hub:     '#485B9A', // Indigo  - SE REACH
+    partner: '#2A3357', // Ink Navy - Partners
+    project: '#A3ADCC', // Periwinkle - Projects
+    datatype:'#6B7385', // Slate - Thematics
+  };
+
+  // Link colors by connection type
+  const LINK_COLOR = {
+    hub:              '#485B9A', // SE REACH → Partner: Indigo
+    'partner-project':'#2A3357', // Partner → Project: Ink Navy
+    'project-datatype':'#A3ADCC',// Project → Thematic: Periwinkle
+    other:            '#E4E8F0', // default
+  };
+
+  const LAYER_LABEL = { hub:'SE REACH', partner:'Partners', project:'Projects', datatype:'Thematics' };
+
+  const wrap  = document.getElementById('net-wrap');
+  const svgEl = document.getElementById('net-svg');
+  const tip   = document.getElementById('net-tip');
+
+  // Legend
+  const legEl = document.getElementById('net-legend');
+  legEl.innerHTML='';
+  Object.entries(LAYER_LABEL).forEach(([ly,lbl])=>{
+    const item=document.createElement('div');
+    item.className='net-leg-item';
+    item.innerHTML=`<div class="net-leg-dot" style="background:${LC[ly]}"></div>${lbl}`;
+    legEl.appendChild(item);
+  });
+
+  // Counts display
+  const countsEl = document.getElementById('net-counts');
+  if(countsEl){
+    const partnerCount = baseNodes.filter(n=>n.ly==='partner').length;
+    const projectCount = baseNodes.filter(n=>n.ly==='project').length;
+    countsEl.innerHTML = `<div>Partners: <strong>${partnerCount}</strong></div><div>Projects: <strong>${projectCount}</strong></div>`;
+  }
+
+  // Filters
+  let activeLayer='all';
+  document.getElementById('net-filters').addEventListener('click',e=>{
+    const btn=e.target.closest('.net-filter-btn'); if(!btn) return;
+    document.querySelectorAll('.net-filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeLayer=btn.dataset.layer;
+    updateVisibility();
+  });
+
+  const nodesById={};
+  baseNodes.forEach(n=>nodesById[n.id]=n);
+
+  function isConnectedToLayer(id,layer){
+    return baseLinks.some(l=>{
+      const s=l.source.id||l.source, t=l.target.id||l.target;
+      if(s===id){const tn=nodesById[t];return tn&&tn.ly===layer;}
+      if(t===id){const sn=nodesById[s];return sn&&sn.ly===layer;}
+      return false;
+    });
+  }
+
+  const getW=()=>wrap.offsetWidth||1200;
+  const getH=()=>wrap.offsetHeight||700;
+
+  const svg=d3.select(svgEl);
+  svg.selectAll('*').remove();
+  svg.attr('width',getW()).attr('height',getH());
+
+  const g=svg.append('g');
+  svg.insert('rect','g').attr('width','100%').attr('height','100%').attr('fill','#ffffff');
+  svg.call(d3.zoom().scaleExtent([0.1,5]).on('zoom',e=>g.attr('transform',e.transform)));
+
+  // Arrow markers
+  const defs=svg.append('defs');
+  defs.append('marker').attr('id','arr-hub')
+    .attr('viewBox','0 0 10 10').attr('refX',28).attr('refY',5)
+    .attr('markerWidth',4).attr('markerHeight',4).attr('orient','auto')
+    .append('path').attr('d','M2 2L8 5L2 8').attr('fill','none')
+    .attr('stroke','#d97706').attr('stroke-width',1.5).attr('stroke-linecap','round');
+  defs.append('marker').attr('id','arr-normal')
+    .attr('viewBox','0 0 10 10').attr('refX',24).attr('refY',5)
+    .attr('markerWidth',4).attr('markerHeight',4).attr('orient','auto')
+    .append('path').attr('d','M2 2L8 5L2 8').attr('fill','none')
+    .attr('stroke','#A3ADCC').attr('stroke-width',1.5).attr('stroke-linecap','round');
+
+  const W=getW(), H=getH();
+
+  // Initial positions: hub at center, others spread by layer
+  baseNodes.forEach(n=>{
+    if(n.id==='se_reach'){ n.x=W/2; n.y=H/2; return; }
+    const layers=['partner','project','datatype'];
+    const li=layers.indexOf(n.ly);
+    const layerNodes=baseNodes.filter(x=>x.ly===n.ly);
+    const idx=layerNodes.indexOf(n);
+    const angle=(idx/layerNodes.length)*Math.PI*2;
+    const radii=[H*0.35, H*0.28, H*0.42];
+    const baseR=radii[li]||H*0.35;
+    n.x=W/2+Math.cos(angle)*baseR*(0.7+li*0.15);
+    n.y=H/2+Math.sin(angle)*baseR*(0.6+li*0.12);
+  });
+
+  // Force simulation
+  const sim=d3.forceSimulation(baseNodes)
+    .force('link', d3.forceLink(baseLinks).id(d=>d.id)
+      .distance(d=>d.type==='hub'?120:90).strength(d=>d.type==='hub'?0.05:0.4))
+    .force('charge', d3.forceManyBody().strength(d=>d.id==='se_reach'?-800:-350))
+    .force('center', d3.forceCenter(W/2,H/2).strength(0.02))
+    .force('collide', d3.forceCollide(d=>d.r+14).strength(0.85))
+    .alphaDecay(0.02);
+
+  function getLinkColor(l, dim=true){
+    return dim ? '#485B9A99' : '#7B9FE0';
+  }
+
+  const linkG=g.append('g').selectAll('line').data(baseLinks).join('line')
+    .attr('stroke','#485B9A99')
+    .attr('stroke-width',1.5)
+    .attr('stroke-dasharray',d=>d.dashed?'4,3':'')
+    .style('transition','opacity .25s');
+
+  function updateVisibility(){
+    if(activeLayer==='all'){
+      nodeG.style('opacity',1);
+      linkG.style('opacity',d=>d.type==='hub'?0.3:0.7);
+    } else {
+      nodeG.style('opacity',d=>d.ly===activeLayer||d.id==='se_reach'||isConnectedToLayer(d.id,activeLayer)?1:0.06);
+      linkG.style('opacity',d=>{
+        if(d.type==='hub') return 0.1;
+        const s=d.source.id||d.source,t=d.target.id||d.target;
+        const sn=nodesById[s],tn=nodesById[t];
+        return(sn&&sn.ly===activeLayer)||(tn&&tn.ly===activeLayer)?0.9:0.04;
+      });
+    }
+  }
+
+  // SE REACH starts at center, fixed until user drags it
+  nodesById['se_reach'].fx = W/2;
+  nodesById['se_reach'].fy = H/2;
+
+  // All nodes draggable — lines follow in real time
+  const nodeG=g.append('g').selectAll('g').data(baseNodes).join('g')
+    .style('cursor','pointer')
+    .call(d3.drag()
+      .on('start',(e,d)=>{
+        if(!e.active) sim.alphaTarget(0.4).restart();
+        d.fx=d.x; d.fy=d.y;
+      })
+      .on('drag',(e,d)=>{
+        d.fx=e.x; d.fy=e.y;
+        // Force-update positions immediately so lines follow
+        linkG.attr('x1',l=>l.source.x).attr('y1',l=>l.source.y)
+             .attr('x2',l=>l.target.x).attr('y2',l=>l.target.y);
+        nodeG.attr('transform',n=>`translate(${n.x},${n.y})`);
+      })
+      .on('end',(e,d)=>{
+        if(!e.active) sim.alphaTarget(0);
+        d.fx=null; d.fy=null;
+      })
+    );
+
+  // Circles - filled with brand color, white text
+  nodeG.append('circle')
+    .attr('r',d=>d.r)
+    .attr('fill',d=>LC[d.ly])
+    .attr('stroke',d=>LC[d.ly])
+    .attr('stroke-width',d=>d.id==='se_reach'?3:1.5);
+
+  // Node labels only (no count number)
+  nodeG.append('text')
+    .text(d=>d.lbl.length>12?d.lbl.slice(0,11)+'…':d.lbl)
+    .attr('text-anchor','middle')
+    .attr('dominant-baseline','middle')
+    .attr('y',0)
+    .attr('font-size',d=>d.id==='se_reach'?13:10)
+    .attr('font-weight',d=>d.id==='se_reach'?'800':'600')
+    .attr('fill','#ffffff')
+    .attr('font-family',"'Poppins',sans-serif")
+    .style('pointer-events','none');
+
+  // ── Click to highlight full chain ─────────────────────────────────────
+  let netSel=null;
+  const LAYER_IDX_NET={partner:0, project:1, datatype:2, hub:-1};
+
+  function netChain(id){
+    const conn=new Set([id]);
+    // Always include SE REACH hub
+    conn.add('se_reach');
+
+    // If clicking SE REACH, add all partners it connects to
+    if(id==='se_reach'){
+      baseLinks.forEach(l=>{
+        if(l.type==='hub'){
+          const s=l.source.id||l.source, t=l.target.id||l.target;
+          conn.add(s); conn.add(t);
+        }
+      });
+      return conn;
+    }
+
+    const ly=nodesById[id]?.ly;
+    const minLy=LAYER_IDX_NET[ly]??0;
+
+    // Forward: downstream
+    const fwd=new Set([id]);
+    let changed=true;
+    while(changed){
+      changed=false;
+      baseLinks.forEach(l=>{
+        if(l.type==='hub') return;
+        const s=l.source.id||l.source, t=l.target.id||l.target;
+        const sLy=LAYER_IDX_NET[nodesById[s]?.ly]??0;
+        const tLy=LAYER_IDX_NET[nodesById[t]?.ly]??0;
+        const up=sLy<=tLy?s:t, dn=sLy<=tLy?t:s;
+        if(fwd.has(up)&&!conn.has(dn)){conn.add(dn);fwd.add(dn);changed=true;}
+      });
+    }
+    // Backward: upstream
+    if(minLy>0){
+      const bwd=new Set([id]);
+      let bc=true;
+      while(bc){
+        bc=false;
+        baseLinks.forEach(l=>{
+          if(l.type==='hub') return;
+          const s=l.source.id||l.source, t=l.target.id||l.target;
+          const sLy=LAYER_IDX_NET[nodesById[s]?.ly]??0;
+          const tLy=LAYER_IDX_NET[nodesById[t]?.ly]??0;
+          const up=sLy<=tLy?s:t, dn=sLy<=tLy?t:s;
+          if(bwd.has(dn)&&!conn.has(up)){conn.add(up);bwd.add(up);bc=true;}
+        });
+      }
+    }
+    return conn;
+  }
+
+  function applyNetHighlight(id){
+    const conn=netChain(id);
+    nodeG.style('opacity',d=>conn.has(d.id)?1:0.08);
+    nodeG.filter(d=>conn.has(d.id)).select('circle').attr('stroke-width',d=>d.id===id?4:2.5);
+    nodeG.filter(d=>!conn.has(d.id)).select('circle').attr('stroke-width',1.5);
+    linkG.style('opacity',l=>{
+      const s=l.source.id||l.source, t=l.target.id||l.target;
+      // Show hub link if SE REACH or the partner is in the chain
+      if(l.type==='hub') return (conn.has(s)&&conn.has(t))?1:0.03;
+      return conn.has(s)&&conn.has(t)?1:0.03;
+    });
+    linkG.filter(l=>{
+      const s=l.source.id||l.source, t=l.target.id||l.target;
+      return conn.has(s)&&conn.has(t);
+    }).attr('stroke','#7B9FE0').attr('stroke-width',2.5);
+  }
+
+  function netReset(){
+    netSel=null;
+    nodeG.style('opacity',1).select('circle').attr('stroke-width',d=>d.id==='se_reach'?3:1.5);
+    linkG.attr('stroke','#485B9A99').attr('stroke-width',1.5).style('opacity',1);
+    updateVisibility();
+  }
+
+  nodeG.on('click',(e,d)=>{
+    e.stopPropagation();
+    if(netSel===d.id){ netReset(); return; }
+    netSel=d.id;
+    applyNetHighlight(d.id);
+  });
+
+  svg.on('click',()=>{ if(netSel) netReset(); });
+
+  // Hover tooltip
+  nodeG.on('mouseenter',(e,d)=>{
+    if(netSel) return;
+    const conns=baseLinks.filter(l=>(l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id);
+    tip.innerHTML=`<b>${d.lbl}</b>`;
+    tip.style.opacity='1';
+    linkG.style('opacity',l=>{
+      const s=l.source.id||l.source, t=l.target.id||l.target;
+      return(s===d.id||t===d.id)?1:0.05;
+    });
+    nodeG.style('opacity',n=>n.id===d.id||n.id==='se_reach'||conns.some(l=>(l.source.id||l.source)===n.id||(l.target.id||l.target)===n.id)?1:0.08);
+    nodeG.filter(n=>n.id===d.id).select('circle').attr('stroke-width',4);
+  })
+  .on('mousemove',e=>{
+    const bnd=wrap.getBoundingClientRect();
+    let tx=e.clientX-bnd.left+16,ty=e.clientY-bnd.top-10;
+    if(tx+160>bnd.width)tx-=176;
+    tip.style.left=tx+'px';tip.style.top=ty+'px';
+  })
+  .on('mouseleave',()=>{
+    tip.style.opacity='0';
+    if(!netSel){
+      nodeG.select('circle').attr('stroke-width',d=>d.id==='se_reach'?3:1.5);
+      updateVisibility();
+    }
+  });
+
+  sim.on('tick',()=>{
+    linkG.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+         .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    nodeG.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+
+  window.addEventListener('resize',()=>{
+    const nw=getW(),nh=getH();
+    svg.attr('width',nw).attr('height',nh);
+    sim.force('center',d3.forceCenter(nw/2,nh/2).strength(0.02));
+    sim.alpha(0.3).restart();
+  });
+}
+</script>
+</body>
+</html>
